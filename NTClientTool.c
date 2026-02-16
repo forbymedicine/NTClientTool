@@ -232,7 +232,6 @@ DWORD WINAPI SelectCertificateThread(LPVOID lpParam) {
 		SetForegroundWindow(hwnd);
 		Sleep(75);
 		SendInput(keyCount, inputs, sizeof(INPUT));
-
 		//wprintf(L"Send button for select certificate!\n");
 	}
 }
@@ -265,7 +264,6 @@ void CALLBACK WinEventProc(
 	}
 
 	GetWindowThreadProcessId(hwnd, &windowProcessId);
-
 	if (windowProcessId != g_targetProcessId) {
 		return;
 	}
@@ -289,12 +287,12 @@ void CALLBACK WinEventProc(
 				GetWindowText(hChild, windowText, 256);
 				if (wcsstr(windowText, L"OK") != NULL) {
 					okButton = hChild;
-					wprintf(L"OK button detected! %p\n", okButton);
+					//wprintf(L"OK button detected! %p\n", okButton);
 				}
 			}
 			else if (wcsstr(className, L"ComboBox") != NULL) {
 				combobox = hChild;
-				wprintf(L"ComboBox detected! %p\n", combobox);
+				//wprintf(L"ComboBox detected! %p\n", combobox);
 			}
 			else if (wcsstr(className, L"Edit") != NULL) {
 				if (firstEdit == NULL) {
@@ -303,7 +301,7 @@ void CALLBACK WinEventProc(
 				LRESULT res = SendMessage(hChild, WM_GETTEXT, 256, (LPARAM)windowText);
 				if (res == 0 && IsWindowVisible(hChild)) {
 					passwordEdit = hChild;
-					wprintf(L"Password edit detected! %p\n", passwordEdit);
+					//wprintf(L"Password edit detected! %p\n", passwordEdit);
 				}
 			}
 
