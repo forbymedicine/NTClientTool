@@ -9,6 +9,12 @@
 #define MAX_LINE_LEN 512
 #define MAX_PATH_LEN 260
 
+#define WINDOWS_TITLE_1 L"\u0411\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u044c Windows"
+#define WINDOWS_TITLE_2 L"Р‘РµР·РѕРїР°СЃРЅРѕСЃС‚СЊ Windows"
+
+#define AVEST_TITLE_1 L"Avest CSP Bel Pro x64 - \u043a\u043e\u043d\u0442\u0435\u0439\u043d\u0435\u0440 \u043b\u0438\u0447\u043d\u044b\u0445 \u043a\u043b\u044e\u0447\u0435\u0439"
+#define AVEST_TITLE_2 L"Avest CSP Bel Pro x64 - РєРѕРЅС‚РµР№РЅРµСЂ Р»РёС‡РЅС‹С… РєР»СЋС‡РµР№"
+
 volatile DWORD g_targetProcessId = 0;
 BOOL g_running = TRUE;
 
@@ -19,7 +25,6 @@ BOOL GetProcessIdByName(const wchar_t* processName) {
 	if (snapshot != INVALID_HANDLE_VALUE) {
 		PROCESSENTRY32W processEntry;
 		processEntry.dwSize = sizeof(processEntry);
-
 		if (Process32FirstW(snapshot, &processEntry)) {
 			do {
 				if (_wcsicmp(processEntry.szExeFile, processName) == 0) {
@@ -248,7 +253,7 @@ void CALLBACK WinEventProc(
 	wchar_t windowTitle[256];
 	GetWindowTextW(hwnd, windowTitle, 256);
 	if (event == EVENT_OBJECT_FOCUS || event == EVENT_OBJECT_CREATE || event == EVENT_OBJECT_SHOW) {
-		if (wcsstr(windowTitle, L"Безопасность Windows") != NULL) {
+		if (wcsstr(windowTitle, WINDOWS_TITLE_1) != NULL || wcsstr(windowTitle, WINDOWS_TITLE_2) != NULL) {
 			CheckAndSetTopmost(hwnd);// need admin privileges on win11
 			if (IsWindowVisible(hwnd)) {
 				HANDLE pressThread = CreateThread(0, 128 * 1024, SelectCertificateThread, hwnd, 0, 0);
@@ -269,10 +274,9 @@ void CALLBACK WinEventProc(
 	GetClassNameW(hwnd, className, sizeof(className) / sizeof(wchar_t));
 	//wprintf(L"event %d %06X %s %p\n", windowProcessId, event, className, hwnd);
 	//fflush(stdout);
-
-	if (wcsstr(windowTitle, L"Avest CSP Bel Pro x64 - контейнер личных ключей") != NULL && IsWindowVisible(hwnd) && event == EVENT_OBJECT_SHOW || event == EVENT_OBJECT_FOCUS) {
-		wprintf(L"Avest! %d\n", event);
-
+	if ((wcsstr(windowTitle, AVEST_TITLE_1) != NULL || wcsstr(windowTitle, AVEST_TITLE_2) != NULL) && IsWindowVisible(hwnd) && event == EVENT_OBJECT_SHOW || event == EVENT_OBJECT_FOCUS) {
+		wprintf(L"Avest window! %p, event %d\n", hwnd, event);
+		HWND firstEdit = NULL;
 		HWND passwordEdit = NULL;
 		HWND combobox = NULL;
 		HWND okButton = NULL;
@@ -280,30 +284,32 @@ void CALLBACK WinEventProc(
 		TCHAR windowText[256] = { 0 };
 		HWND hChild = GetWindow(hwnd, GW_CHILD);
 		while (hChild != NULL) {
-
 			GetClassName(hChild, className, 256);
 			if (wcsstr(className, L"Button") != NULL) {
 				GetWindowText(hChild, windowText, 256);
 				if (wcsstr(windowText, L"OK") != NULL) {
 					okButton = hChild;
-					//wprintf(L"OK button detected! %p\n", okButton);
+					wprintf(L"OK button detected! %p\n", okButton);
 				}
 			}
 			else if (wcsstr(className, L"ComboBox") != NULL) {
 				combobox = hChild;
-				//wprintf(L"ComboBox detected! %p\n", combobox);
+				wprintf(L"ComboBox detected! %p\n", combobox);
 			}
 			else if (wcsstr(className, L"Edit") != NULL) {
+				if (firstEdit == NULL) {
+					firstEdit = hChild;
+				}
 				LRESULT res = SendMessage(hChild, WM_GETTEXT, 256, (LPARAM)windowText);
 				if (res == 0 && IsWindowVisible(hChild)) {
 					passwordEdit = hChild;
-					//wprintf(L"Password edit detected! %p\n", passwordEdit);
+					wprintf(L"Password edit detected! %p\n", passwordEdit);
 				}
 			}
 
 			//RECT rect;
 			//GetWindowRect(hChild, &rect);
-			//printf("%d. HWND: %p\n", count, hChild);
+			//printf("HWND: %p\n", hChild);
 			//printf("   Class: %S\n", className);
 			//printf("   Text: %S\n", windowText);
 			//printf("   Rect: (%d,%d)-(%d,%d)\n",
@@ -311,6 +317,9 @@ void CALLBACK WinEventProc(
 			//printf("\n");
 
 			hChild = GetWindow(hChild, GW_HWNDNEXT);
+		}
+		if (combobox != NULL && passwordEdit == NULL && okButton != NULL) {
+			passwordEdit = firstEdit;
 		}
 		if (combobox != NULL && passwordEdit != NULL && okButton != NULL) {
 			TCHAR holderName[128] = { 0 };
@@ -351,7 +360,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
 	if (windowProcessId == g_targetProcessId) {
 		GetWindowTextW(hwnd, windowTitle, 256);
 
-		if (wcsstr(windowTitle, L"Безопасность Windows") != NULL) {
+		if (wcsstr(windowTitle, WINDOWS_TITLE_1) != NULL || wcsstr(windowTitle, WINDOWS_TITLE_2) != NULL) {
 			wprintf(L"Existing window found: %s\n", windowTitle);
 			CheckAndSetTopmost(hwnd);
 			return FALSE;
@@ -509,7 +518,6 @@ int main() {
 	if (hMutex == NULL) {
 		return 1;
 	}
-
 	if (!IsRunningFromConsole()) {
 		FreeConsole();
 	}
