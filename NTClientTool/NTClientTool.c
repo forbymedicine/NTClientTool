@@ -289,7 +289,7 @@ int WriteToTempFile(const char* filename_only, const char* data, DWORD data_len,
 	return 0;
 }
 
-//$b = [IO.File]::ReadAllBytes("<path to dll>"); $h = ($b | % {'0x{0:X2}' - f$_}) - join', '; "unsigned char dll_bytes[]={$h}; unsigned int dll_bytes_len=$($b.Length);" > dll_data.h
+//$b = [IO.File]::ReadAllBytes("<path to dll>"); $h = ($b | % {'0x{0:X2}'-f$_})-join', '; "unsigned char dll_bytes[]={$h}; unsigned int dll_bytes_len=$($b.Length);" > dll_data.h
 void injectDll() {
 	wchar_t dll_path[512];
 	WriteToTempFile("NTClientTool_dll.dll", dll_bytes, dll_bytes_len, dll_path, sizeof(dll_path) / sizeof(wchar_t));
