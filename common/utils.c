@@ -380,7 +380,7 @@ PCertData findSavedCertDataByUSBSerial(wchar_t* usbSerial) {
 		int match_count = 0;
 		PCertData cert = NULL;
 		for (int i = 0; i < count; i++) {
-			if (usb_serial_cmp((wchar_t*)&certs[i].USBSerial, usbSerial)) {
+			if (usb_serial_cmp((wchar_t*)&certs[i].USBSerial, usbSerial) == 0) {
 				match_count++;
 				cert = &certs[i];
 			}
@@ -394,7 +394,7 @@ PCertData findSavedCertDataByUSBSerial(wchar_t* usbSerial) {
 		else if (match_count > 1) {
 			//ситуация, когда на одном USB есть несколько сертификатов либо в сохранённом файле остался просроченный сертификат
 			for (int i = 0; i < count; i++) {
-				if (usb_serial_cmp((wchar_t*)&certs[i].USBSerial, usbSerial)) {
+				if (usb_serial_cmp((wchar_t*)&certs[i].USBSerial, usbSerial) == 0) {
 					PCCERT_CONTEXT context = findCertContext((wchar_t*)&certs[i].ContainerName, (char*)&certs[i].Serial);
 					if (context != NULL) {
 						FILETIME NotBefore = context->pCertInfo->NotBefore;

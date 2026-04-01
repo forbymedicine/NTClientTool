@@ -172,7 +172,7 @@ void CALLBACK WinEventProc(
 						cert_count = 1;
 					}
 					else {
-						PCertData newCerts = realloc(certs, cert_count + 1);
+						PCertData newCerts = realloc(certs, (cert_count + 1) * sizeof(CertData));
 						if (newCerts != 0) {
 							certs = newCerts;
 							certData = &certs[cert_count];
