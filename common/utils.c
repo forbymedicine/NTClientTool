@@ -90,7 +90,6 @@ int usb_serial_cmp(wchar_t* serial1, wchar_t* serial2) {
 	}
 
 	int cmp_result = wcscmp(code1, code2);
-
 	if (cmp_result != 0) {
 		return cmp_result;
 	}
@@ -110,7 +109,6 @@ int usb_serial_cmp(wchar_t* serial1, wchar_t* serial2) {
 			return -1;
 		}
 	}
-
 	return 0;
 }
 

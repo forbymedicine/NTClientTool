@@ -9,16 +9,8 @@
 #define MAX_LINE_LEN 512
 #define MAX_PATH_LEN 260
 
-#define WINDOWS_TITLE_1 L"\u0411\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u044c Windows"
-#define WINDOWS_TITLE_2 L"Безопасность Windows"
-
-#define AVEST_TITLE_1 L"Avest CSP Bel Pro x64 - \u043a\u043e\u043d\u0442\u0435\u0439\u043d\u0435\u0440 \u043b\u0438\u0447\u043d\u044b\u0445 \u043a\u043b\u044e\u0447\u0435\u0439"
-#define AVEST_TITLE_2 L"Avest CSP Bel Pro x64 - контейнер личных ключей"
-
 volatile DWORD g_targetProcessId = 0;
 BOOL g_running = TRUE;
-
-
 
 BOOL IsWindowTopmost(HWND hwnd) {
 	WINDOWINFO wi = { 0 };
@@ -85,9 +77,7 @@ void CALLBACK WinEventProc(
 	//fflush(stdout);
 	if ((wcsstr(windowTitle, AVEST_TITLE_1) != NULL || wcsstr(windowTitle, AVEST_TITLE_2) != NULL) && IsWindowVisible(hwnd) && event == EVENT_OBJECT_SHOW || event == EVENT_OBJECT_FOCUS) {
 		wprintf(L"Avest window! %p, event %d\n", hwnd, event);
-		int editCounter = 0;
 		HWND firstEdit = NULL;
-		HWND thirdEdit = NULL;
 		HWND passwordEdit = NULL;
 		HWND containerNameEdit = NULL;
 		HWND combobox = NULL;
@@ -110,12 +100,8 @@ void CALLBACK WinEventProc(
 				//wprintf(L"ComboBox detected! %p\n", combobox);
 			}
 			else if (wcsstr(className, L"Edit") != NULL) {
-				editCounter++;
 				if (firstEdit == NULL) {
 					firstEdit = hChild;
-				}
-				if (editCounter == 3) {
-					thirdEdit = hChild;
 				}
 				LRESULT res = SendMessage(hChild, WM_GETTEXT, 256, (LPARAM)windowText);
 				if (IsWindowVisible(hChild)) {

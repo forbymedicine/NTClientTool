@@ -2,6 +2,11 @@
 #include <initguid.h>
 #include <usbiodef.h>
 #include <tlhelp32.h>
+#define WINDOWS_TITLE_1 L"\u0411\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u044c Windows"
+#define WINDOWS_TITLE_2 L"Безопасность Windows"
+
+#define AVEST_TITLE_1 L"Avest CSP Bel Pro x64 - \u043a\u043e\u043d\u0442\u0435\u0439\u043d\u0435\u0440 \u043b\u0438\u0447\u043d\u044b\u0445 \u043a\u043b\u044e\u0447\u0435\u0439"
+#define AVEST_TITLE_2 L"Avest CSP Bel Pro x64 - контейнер личных ключей"
 typedef struct _CertData {
 	char Serial[64];
 	wchar_t ContainerName[128];
