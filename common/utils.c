@@ -111,7 +111,7 @@ int usb_serial_cmp(wchar_t* serial1, wchar_t* serial2) {
 		}
 	}
 
-	return -1;
+	return 0;
 }
 
 char* getCertSerialByContainerName(wchar_t* containerName) {

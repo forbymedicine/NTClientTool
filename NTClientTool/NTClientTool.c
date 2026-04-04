@@ -156,7 +156,7 @@ void CALLBACK WinEventProc(
 				PCertData certData = NULL;
 				if (cert_count > 0) {
 					certData = findCertDataByUSBSerialAndContainerName(certs, cert_count, usbSerial, containerName);
-					if (certData != NULL) {
+					if (certData != NULL && (certData->ContainerName[0] || containerName[0])) {
 						if (certData->password[0]) {
 							wprintf(L"Enter password %s\n", certData->password);
 							SendMessage(passwordEdit, WM_SETTEXT, 0, (LPARAM)certData->password);
