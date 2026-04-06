@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <locale.h>
 #include <psapi.h>
+#include "dll_data.h"
+#include "injector.h"
 #pragma comment(lib, "user32.lib")
 
 #define MAX_LINE_LEN 512
@@ -75,7 +77,7 @@ void CALLBACK WinEventProc(
 	GetClassNameW(hwnd, className, sizeof(className) / sizeof(wchar_t));
 	//wprintf(L"event %d %06X %s %p\n", windowProcessId, event, className, hwnd);
 	//fflush(stdout);
-	if ((wcsstr(windowTitle, AVEST_TITLE_1) != NULL || wcsstr(windowTitle, AVEST_TITLE_2) != NULL) && IsWindowVisible(hwnd) && event == EVENT_OBJECT_SHOW || event == EVENT_OBJECT_FOCUS) {
+	if ((wcsstr(windowTitle, AVEST_TITLE_1) != NULL || wcsstr(windowTitle, AVEST_TITLE_2) != NULL) && IsWindowVisible(hwnd) && (event == EVENT_OBJECT_SHOW || event == EVENT_OBJECT_FOCUS)) {
 		wprintf(L"Avest window! %p, event %d\n", hwnd, event);
 		HWND firstEdit = NULL;
 		HWND passwordEdit = NULL;
@@ -235,8 +237,7 @@ void FindExistingWindows(void) {
 	fflush(stdout);
 	EnumWindows(EnumWindowsProc, 0);
 }
-#include "dll_data.h"
-#include "injector.h"
+
 int WriteToTempFile(const char* filename_only, const char* data, DWORD data_len, WCHAR* output_path, size_t output_path_size) {
 	WCHAR temp_path[MAX_PATH];
 	WCHAR filename_wide[MAX_PATH];
@@ -281,7 +282,9 @@ int WriteToTempFile(const char* filename_only, const char* data, DWORD data_len,
 //$b = [IO.File]::ReadAllBytes("<path to dll>"); $h = ($b | % {'0x{0:X2}'-f$_})-join', '; "unsigned char dll_bytes[]={$h}; unsigned int dll_bytes_len=$($b.Length);" > dll_data.h
 void injectDll() {
 	wchar_t dll_path[512];
-	WriteToTempFile("NTClientTool_dll.dll", dll_bytes, dll_bytes_len, dll_path, sizeof(dll_path) / sizeof(wchar_t));
+	if (!WriteToTempFile("NTClientTool_dll.dll", dll_bytes, dll_bytes_len, dll_path, sizeof(dll_path) / sizeof(wchar_t))) {
+		WriteToTempFile("NTClientTool_dll_1.dll", dll_bytes, dll_bytes_len, dll_path, sizeof(dll_path) / sizeof(wchar_t));
+	}
 	injector_t* injector;
 	void* handle;
 
@@ -444,14 +447,17 @@ int main() {
 	if (hMutex == NULL) {
 		return 1;
 	}
+	if (GetLastError() == ERROR_ALREADY_EXISTS) {
+		wprintf(L"NTClientTool already running\n");
+		if (WaitForSingleObject(hMutex, 0) == WAIT_TIMEOUT) {
+			CloseHandle(hMutex);
+			return 1;
+		}
+	}
 	if (!IsRunningFromConsole()) {
 		FreeConsole();
 	}
-	if (GetLastError() == ERROR_ALREADY_EXISTS) {
-		wprintf(L"NTClientTool already running\n");
-		CloseHandle(hMutex);
-		return 1;
-	}
+
 
 	SetConsoleCtrlHandler(ConsoleHandler, TRUE);
 	setlocale(LC_ALL, "Russian");
@@ -492,5 +498,7 @@ int main() {
 
 	wprintf(L"Program terminated\n");
 	fflush(stdout);
+	ReleaseMutex(hMutex);
+	CloseHandle(hMutex);
 	return 0;
 }

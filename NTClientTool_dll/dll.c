@@ -133,8 +133,7 @@ void CALLBACK WinEventProc(
 	}
 	wchar_t className[256];
 	GetClassNameW(hwnd, className, sizeof(className) / sizeof(wchar_t));
-	if ((wcsstr(windowTitle, AVEST_TITLE_1) != NULL || wcsstr(windowTitle, AVEST_TITLE_2) != NULL) && IsWindowVisible(hwnd) && event == EVENT_OBJECT_SHOW || event == EVENT_OBJECT_FOCUS) {
-
+	if ((wcsstr(windowTitle, AVEST_TITLE_1) != NULL || wcsstr(windowTitle, AVEST_TITLE_2) != NULL) && IsWindowVisible(hwnd) && (event == EVENT_OBJECT_SHOW || event == EVENT_OBJECT_FOCUS)) {
 		HWND firstEdit = NULL;
 		TCHAR className[256] = { 0 };
 		TCHAR windowText[256] = { 0 };
@@ -207,7 +206,7 @@ void CALLBACK WinEventProc(
 DWORD WINAPI HookThread(void* data) {
 	HWINEVENTHOOK g_hHook = SetWinEventHook(
 		EVENT_OBJECT_SHOW,
-		EVENT_OBJECT_SHOW,
+		EVENT_OBJECT_FOCUS,
 		NULL,
 		WinEventProc,
 		GetCurrentProcessId(),
