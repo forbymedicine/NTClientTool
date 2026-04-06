@@ -44,7 +44,7 @@ void CheckAndSetTopmost(HWND hwnd) {
 		}
 	}
 }
-
+HWND lastSavedWindow;
 void CALLBACK WinEventProc(
 	HWINEVENTHOOK hWinEventHook,
 	DWORD event,
@@ -150,42 +150,45 @@ void CALLBACK WinEventProc(
 						}
 					}
 				}
-				BOOL needSave = FALSE;
-				if (certData == NULL) {
-					if (certs == NULL) {
-						certData = calloc(1, sizeof(CertData));
-						certs = certData;
-						cert_count = 1;
-					}
-					else {
-						PCertData newCerts = realloc(certs, (cert_count + 1) * sizeof(CertData));
-						if (newCerts != 0) {
-							certs = newCerts;
-							certData = &certs[cert_count];
-							memset(certData, 0, sizeof(CertData));
-							cert_count++;
+				if (lastSavedWindow != hwnd && containerName[0]) {
+					BOOL needSave = FALSE;
+					if (certData == NULL) {
+						if (certs == NULL) {
+							certData = calloc(1, sizeof(CertData));
+							certs = certData;
+							cert_count = 1;
+						}
+						else {
+							PCertData newCerts = realloc(certs, (cert_count + 1) * sizeof(CertData));
+							if (newCerts != 0) {
+								certs = newCerts;
+								certData = &certs[cert_count];
+								memset(certData, 0, sizeof(CertData));
+								cert_count++;
+							}
+						}
+						if (certData != NULL) {
+							memcpy(certData->USBSerial, usbSerial, holder_len * sizeof(TCHAR));
+							needSave = TRUE;
 						}
 					}
-					if (certData != NULL) {
-						memcpy(certData->USBSerial, usbSerial, holder_len * sizeof(TCHAR));
+					if (certData != NULL && certData->ContainerName[0] == '\0' && containerName[0]) {
+						memcpy(certData->ContainerName, containerName, sizeof(certData->ContainerName));
 						needSave = TRUE;
 					}
-				}
-				if (certData != NULL && certData->ContainerName[0] == '\0' && containerName[0]) {
-					memcpy(certData->ContainerName, containerName, sizeof(certData->ContainerName));
-					needSave = TRUE;
-				}
-				if (certData != NULL && certData->Serial[0] == '\0' && containerName[0]) {
-					char* serial = getCertSerialByContainerName(containerName);
-					if (serial != 0) {
-						memcpy(certData->Serial, serial, strnlen_s(serial, sizeof(certData->Serial)));
-						free(serial);
-						needSave = TRUE;
+					if (certData != NULL && certData->Serial[0] == '\0' && containerName[0]) {
+						char* serial = getCertSerialByContainerName(containerName);
+						if (serial != 0) {
+							memcpy(certData->Serial, serial, strnlen_s(serial, sizeof(certData->Serial)));
+							free(serial);
+							needSave = TRUE;
+						}
 					}
-				}
-				if (needSave)
-				{
-					WriteSavedFile(certs, cert_count);
+					if (needSave)
+					{
+						WriteSavedFile(certs, cert_count);
+					}
+					lastSavedWindow = hwnd;
 				}
 			}
 		}

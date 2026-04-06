@@ -210,7 +210,7 @@ DWORD WINAPI HookThread(void* data) {
 		EVENT_OBJECT_SHOW,
 		NULL,
 		WinEventProc,
-		0,
+		GetCurrentProcessId(),
 		0,
 		WINEVENT_OUTOFCONTEXT
 	);
@@ -236,7 +236,7 @@ DWORD WINAPI HookThread(void* data) {
 			}
 			fflush(stdout);
 		}
-		Sleep(300);
+		Sleep(50);
 	}
 	if (g_avest_window && IsWindow(g_avest_window) && g_originalButtonProc) {
 		if (IsWindow(g_checkBox)) {
